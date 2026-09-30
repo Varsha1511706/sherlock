@@ -1,0 +1,98 @@
+{
+  "connection_pool_saturation": {
+    "title": "DB Connection Pool Saturation",
+    "severity": "SEV-1",
+    "steps": [
+      "Check DB connection count: SELECT count(*) FROM pg_stat_activity;",
+      "Identify long-running queries: SELECT pid, query, state, now()-query_start FROM pg_stat_activity WHERE state != 'idle';",
+      "Kill queries older than 30s if safe",
+      "Increase pool size: pool_size=100 → pool_size=200",
+      "Enable connection queue metrics and set alert threshold at 80%",
+      "Restart auth-service to release stale connections"
+    ]
+  },
+  "memory_leak": {
+    "title": "Memory Leak / OOM",
+    "severity": "SEV-1",
+    "steps": [
+      "Capture heap profile: curl /debug/pprof/heap > heap.out",
+      "Identify top allocators: go tool pprof -top heap.out",
+      "Restart affected pods to reclaim memory",
+      "Set memory limit and OOM killer alerts",
+      "File a bug with the heap profile attached",
+      "Deploy fix and monitor RSS for 24h"
+    ]
+  },
+  "network_latency": {
+    "title": "Upstream Network Latency",
+    "severity": "SEV-2",
+    "steps": [
+      "Confirm latency: ping/traceroute to upstream service",
+      "Check upstream service health dashboard",
+      "Verify DNS resolution time: dig upstream.service",
+      "Increase client timeout and add retry with jitter",
+      "Open circuit breaker if error rate > 10%",
+      "Notify upstream team if issue persists"
+    ]
+  },
+  "third_party_outage": {
+    "title": "Third-Party Vendor Outage",
+    "severity": "SEV-2",
+    "steps": [
+      "Check vendor status page and status webhook",
+      "Enable retry with exponential backoff",
+      "Failover to backup provider if available",
+      "Queue failed requests for replay",
+      "Notify customer support with estimated impact",
+      "Post-mortem once vendor recovers"
+    ]
+  },
+  "auth_single_point_of_failure": {
+    "title": "Auth Service Cascade",
+    "severity": "SEV-1",
+    "steps": [
+      "Verify auth-service health and pod count",
+      "Check for clock skew: date on each node vs NTP",
+      "Enable JWT validation cache with 5-min TTL",
+      "Add circuit breaker to auth calls with 200ms timeout",
+      "Deploy fallback auth for critical endpoints",
+      "Post-incident: shard auth or add read replica"
+    ]
+  },
+  "bad_deploy_upstream_unavailable": {
+    "title": "Bad Deploy — Upstream Unavailable",
+    "severity": "SEV-1",
+    "steps": [
+      "Rollback deploy immediately: kubectl rollout undo deployment/<name>",
+      "Verify pod health after rollback",
+      "Drain traffic from affected AZ if partial",
+      "Inspect deploy diff for breaking changes",
+      "Add readiness probe with proper warmup",
+      "Enforce canary deploy with automatic rollback"
+    ]
+  },
+  "missing_index": {
+    "title": "Missing Database Index",
+    "severity": "SEV-3",
+    "steps": [
+      "Identify slow query: pg_stat_statements ORDER BY total_time DESC",
+      "Run EXPLAIN ANALYZE on the slow query",
+      "Create index concurrently: CREATE INDEX CONCURRENTLY ...",
+      "Verify query plan uses new index",
+      "Monitor p99 latency for 1 hour",
+      "Document index and add to schema migration"
+    ]
+  },
+  "replication_lag": {
+    "title": "DB Replication Lag",
+    "severity": "SEV-2",
+    "steps": [
+      "Check replica lag: SELECT now() - pg_last_xact_replay_timestamp();",
+      "Inspect replica IO and CPU",
+      "Route reads to primary temporarily",
+      "Check for long-running write on primary",
+      "Increase WAL sender/receiver buffers if needed",
+      "Rebuild replica from snapshot if lag persists > 10 min"
+    ]
+  }
+}

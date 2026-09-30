@@ -1,0 +1,17 @@
+{
+  "fault_type": "db_connection_pool",
+  "root_cause": "connection_pool_saturation",
+  "origin_service": "db-service",
+  "cascade_services": [
+    "auth-service",
+    "api-gateway"
+  ],
+  "affected_services": [
+    "db-service",
+    "auth-service",
+    "api-gateway"
+  ],
+  "incident_start_minute": 30,
+  "incident_duration_minutes": 6,
+  "seed": 520
+}

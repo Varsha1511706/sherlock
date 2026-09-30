@@ -1,0 +1,11 @@
+
+{
+  "nodes": ["api-gateway", "auth-service", "payment-service", "db-service"],
+  "edges": [
+    {"from": "api-gateway",     "to": "auth-service",    "kind": "http", "p99_ms": 45},
+    {"from": "api-gateway",     "to": "payment-service", "kind": "http", "p99_ms": 120},
+    {"from": "auth-service",    "to": "db-service",      "kind": "sql",  "p99_ms": 12},
+    {"from": "payment-service", "to": "db-service",      "kind": "sql",  "p99_ms": 18},
+    {"from": "payment-service", "to": "auth-service",    "kind": "http", "p99_ms": 30}
+  ]
+}
